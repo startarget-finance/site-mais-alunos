@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mais Alunos – Consultoria</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..900&display=swap" rel="stylesheet">
+<style>
+/* VOICE: direto, enérgico, de treino — uma pergunta por tela, sem distrações.
+   IDEA: a ficha de avaliação de academia, preenchida linha a linha.
+   PICTURE: pilha de anilhas subindo como gráfico de alunos crescendo.
+   COLOUR and TYPE: coral elétrico dominante, tinta ameixa, papel claro; Archivo condensada.
+   LAYOUT: tela cheia por passo, coluna única centralizada, barra de progresso no topo. */
+:root{color-scheme:light dark;
+--bg:light-dark(#f5f2ec,#17131b);--ink:light-dark(#1d1722,#f3eee8);--mute:light-dark(#6a6170,#a99fae);
+--acc:#ff4d2e;--acc-ink:#fff;--line:light-dark(#d9d2c8,#3a3240);--card:light-dark(#fffdf9,#211b26);--err:light-dark(#c0261a,#ff8a7a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 Archivo,system-ui,sans-serif;overflow-x:clip}
+.top{position:fixed;inset:0 0 auto;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:14px max(4vw,16px)}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-stretch:80%;font-size:20px;letter-spacing:.01em}
+.logo b{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--acc);color:var(--acc-ink);font-size:20px;line-height:1}
+.bar{position:fixed;inset:0 0 auto;height:4px;background:transparent;z-index:6}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s ease}
+main{min-height:100%;display:grid}
+.step{grid-area:1/1;min-height:100svh;display:none;align-items:center;padding:84px max(5vw,18px) 96px}
+.step.on{display:flex;animation:up .45s ease both}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.step.on{animation:none}.bar i{transition:none}}
+.wrap{width:100%;max-width:700px;margin:0 auto}
+.welcome .wrap{max-width:1100px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(24px,5vw,72px);align-items:center}
+h1{font-size:clamp(34px,5.4vw,52px);line-height:1.02;font-stretch:78%;font-weight:850;margin:0 0 18px;text-wrap:balance}
+h2{font-size:clamp(24px,3.4vw,32px);line-height:1.15;font-weight:700;margin:0 0 8px;text-wrap:balance}
+.num{display:inline-flex;align-items:center;gap:6px;color:var(--acc);font-weight:700;font-size:15px;margin-bottom:10px}
+p{margin:0 0 14px;max-width:62ch}
+.note{color:var(--mute);font-size:15px;margin:0 0 18px}
+.important{border-left:3px solid var(--acc);padding:2px 0 2px 14px;font-weight:600}
+.art{aspect-ratio:1/1;width:100%;max-width:440px;justify-self:center}
+.art svg{width:100%;height:100%;display:block}
+.btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 24px;border-radius:10px;background:var(--acc);color:var(--acc-ink);font:700 18px Archivo,sans-serif;transition:transform .12s,filter .12s}
+.btn:hover{filter:brightness(1.06)}.btn:active{transform:scale(.98)}
+.btn:focus-visible,.opt:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.hint{color:var(--mute);font-size:14px;margin-left:12px}
+.actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:22px}
+input[type=text],input[type=email],input[type=tel]{width:100%;border:0;border-bottom:2px solid var(--line);background:transparent;color:var(--ink);font:500 clamp(20px,3vw,26px) Archivo,sans-serif;padding:10px 2px;border-radius:0}
+input::placeholder{color:var(--mute);opacity:.6}
+input:focus{border-bottom-color:var(--acc);outline:none}
+.err{color:var(--err);font-size:15px;min-height:1.5em;margin-top:8px;font-weight:600}
+.opts{display:grid;gap:10px;margin-top:18px;max-width:520px}
+.opts.cols{grid-template-columns:repeat(2,minmax(0,1fr));max-width:620px}
+.opt{display:flex;align-items:center;gap:12px;min-height:50px;padding:8px 14px;border:1.5px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:500 17px Archivo,sans-serif;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.opt kbd{flex:none;display:grid;place-items:center;width:26px;height:26px;border:1.5px solid var(--line);border-radius:6px;font:700 13px Archivo,sans-serif;color:var(--mute)}
+.opt:hover{border-color:var(--acc)}
+.opt.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,var(--card))}
+.opt.sel kbd{background:var(--acc);border-color:var(--acc);color:#fff}
+.nav{position:fixed;right:max(4vw,16px);bottom:18px;display:flex;gap:6px;z-index:5}
+.nav button{width:44px;height:44px;border-radius:10px;border:0;background:var(--acc);color:#fff;font-size:20px;cursor:pointer}
+.nav button:disabled{opacity:.3;cursor:default}
+.end .wrap{text-align:left}
+.badge{width:72px;height:72px;border-radius:50%;background:var(--acc);display:grid;place-items:center;margin-bottom:22px}
+.summary{margin:22px 0 0;border-top:1px solid var(--line);font-size:15px}
+.summary div{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr);gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.summary dt{color:var(--mute)}.summary dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.small{font-size:13px;color:var(--mute);margin-top:16px}
+@media(max-width:760px){.welcome .wrap{grid-template-columns:1fr}.art{max-width:260px;order:-1;justify-self:start}}
+@media(max-width:600px){.opts.cols{grid-template-columns:1fr}.hint{display:none}.summary div{grid-template-columns:1fr;gap:2px}}
+</style>
+</head>
+<body>
+<div class="bar"><i id="bar"></i></div>
+<header class="top"><div class="logo"><b>+</b>Mais Alunos</div></header>
+
+<main id="app">
+  <section class="step welcome on" data-k="welcome">
+    <div class="wrap">
+      <div>
+        <h1>Mais alunos na sua academia, todo mês</h1>
+        <p>Olá! Aqui é a Mais Alunos. Nosso trabalho é um só: fazer academias, studios e boxes atraírem e matricularem mais alunos, de forma previsível, sem depender só de indicação.</p>
+        <p>Responda este diagnóstico rápido e garanta uma sessão gratuita de 1 hora, em que mostramos onde o seu negócio está perdendo alunos e o plano para encher sua agenda de matrículas.</p>
+        <p class="important">Importante: nossa equipe vai chamar você no WhatsApp para agendar. Preencha só se tiver interesse real e disponibilidade nos próximos dias.</p>
+        <div class="actions"><button class="btn" data-go="next">Começar →</button><span class="hint">leva cerca de 1 minuto</span></div>
+      </div>
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 400 400">
+          <defs>
+            <linearGradient id="pl" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ff7a5c"/><stop offset="1" stop-color="#e2361a"/></linearGradient>
+            <g id="plate"><ellipse cx="0" cy="10" rx="46" ry="14" fill="#000" opacity=".12"/><rect x="-44" y="-12" width="88" height="22" rx="11" fill="url(#pl)"/><rect x="-44" y="-12" width="88" height="6" rx="3" fill="#fff" opacity=".28"/><circle cx="0" cy="-1" r="5" fill="#1d1722" opacity=".55"/></g>
+          </defs>
+          <rect x="20" y="20" width="360" height="360" rx="36" fill="var(--card)" stroke="var(--line)"/>
+          <path d="M60 330H340" stroke="var(--line)" stroke-width="2"/>
+          <g id="stacks"></g>
+          <path d="M78 262 L160 214 L240 160 L322 92" fill="none" stroke="var(--ink)" stroke-width="3" stroke-dasharray="6 7" stroke-linecap="round"/>
+          <path d="M310 86 l16 4 -6 15" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <text x="60" y="62" font-family="Archivo" font-weight="800" font-size="22" fill="var(--ink)">+ alunos</text>
+          <text x="60" y="84" font-family="Archivo" font-size="14" fill="var(--mute)">todo mês</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Formulário oculto: o Netlify lê isto na publicação e passa a guardar os envios em Forms -->
+<form name="diagnostico" data-netlify="true" netlify-honeypot="bot-field" hidden>
+  <input name="bot-field"><input name="compromisso"><input name="nome"><input name="whatsapp"><input name="email"><input name="instagram"><input name="segmento"><input name="alunos"><input name="meta"><input name="faturamento">
+</form>
+
+<div class="nav"><button id="prev" aria-label="Pergunta anterior">↑</button><button id="nextb" aria-label="Próxima pergunta">↓</button></div>
+
+<script>
+{
+// Para receber as respostas no seu WhatsApp, coloque o número com DDI+DDD (só dígitos), ex: "5511999999999".
+const WHATSAPP_DESTINO = "";
+
+const Q = [
+  {k:"compromisso",t:"radio",q:"Você leu a página anterior e está pronto(a) para participar de uma sessão de diagnóstico com o nosso time nas próximas 48 horas?",
+   o:["✅ Sim, quero mais alunos","❌ Agora não é pra mim"],jump:{"❌ Agora não é pra mim":"desqualificado"}},
+  {k:"nome",t:"name",q:"Pra começar, qual é o seu nome completo?",ph:"Digite seu nome e sobrenome"},
+  {k:"whatsapp",t:"tel",q:"Qual o seu WhatsApp com DDD?",n:"Informe o seu número pessoal, não o da academia. Assim falamos direto com quem decide.",ph:"(11) 99999-9999"},
+  {k:"email",t:"email",q:"Seu melhor e-mail:",ph:"nome@exemplo.com"},
+  {k:"instagram",t:"text",q:"Qual o Instagram do seu negócio?",n:"É por ele que começamos a analisar como você atrai alunos hoje. Exemplo: @maisalunos",ph:"@suaacademia"},
+  {k:"segmento",t:"radio",cols:1,q:"Em qual segmento do mercado fitness você atua?",
+   o:["Academia","Studio","Box","Pilates","Lutas","Assessoria Esportiva","Escola de Dança","Escola de Natação","Club Wellness","Outro"]},
+  {k:"alunos",t:"radio",cols:1,q:"Quantos alunos ativos você tem hoje?",
+   o:["Menos de 100","100 a 199","200 a 399","400 a 699","700 a 999","1.000 ou mais"]},
+  {k:"meta",t:"radio",q:"Quantos novos alunos você quer matricular por mês?",
+   o:["Até 20","De 20 a 50","De 50 a 100","Mais de 100"]},
+  {k:"faturamento",t:"radio",cols:1,q:"Qual é o seu faturamento mensal atual?",
+   o:["Menos de 15 mil","15 mil até 29 mil","30 mil até 49 mil","50 mil até 79 mil","80 mil até 99 mil","100 mil até 149 mil","150 mil até 249 mil","250 mil até 500 mil","Mais de 500 mil"]}
+];
+const LABEL = {compromisso:"Compromisso",nome:"Nome",whatsapp:"WhatsApp",email:"E-mail",instagram:"Instagram",segmento:"Segmento",alunos:"Alunos ativos",meta:"Meta de novos alunos/mês",faturamento:"Faturamento mensal"};
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const L = "ABCDEFGHIJ";
+const app = document.getElementById("app");
+const ans = {};
+
+// anilhas da ilustração
+const st = document.getElementById("stacks");
+[[100,3],[180,5],[260,7],[330,9]].forEach(([x,n],c)=>{let h="";for(let i=0;i<n;i++)h+=`<use href="#plate" x="${x-12}" y="${318-i*24}"/>`;st.innerHTML+=h});
+
+const qHtml = (q,i) => {
+  const head = `<div class="num">${i+1} →</div><h2>${esc(q.q)}</h2>${q.n?`<p class="note">${esc(q.n)}</p>`:""}`;
+  let body;
+  if(q.t==="radio") body = `<div class="opts${q.cols?" cols":""}" role="radiogroup">${q.o.map((o,j)=>`<button type="button" class="opt" role="radio" aria-checked="false" data-v="${esc(o)}"><kbd>${L[j]}</kbd><span>${esc(o)}</span></button>`).join("")}</div>`;
+  else body = `<input id="in-${q.k}" type="${q.t==="name"?"text":q.t}" ${q.t==="tel"?'inputmode="tel"':""} autocomplete="${({name:"name",tel:"tel",email:"email"})[q.t]||"off"}" placeholder="${esc(q.ph||"")}">`;
+  return `<section class="step" data-k="${q.k}"><div class="wrap">${head}${body}<div class="err" aria-live="polite"></div>
+  <div class="actions"><button class="btn" data-go="ok">OK ✓</button><span class="hint">pressione <b>Enter ↵</b></span></div></div></section>`;
+};
+app.insertAdjacentHTML("beforeend", Q.map(qHtml).join("") + `
+<section class="step end" data-k="fim"><div class="wrap">
+  <div class="badge"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <h1>Pronto! Sua sessão de diagnóstico está garantida.</h1>
+  <p>Parabéns por dar o primeiro passo para colocar mais alunos pra dentro. Agora é com a gente: nosso time vai analisar suas respostas e chamar você no WhatsApp para agendar a sessão gratuita, em que vamos mostrar onde você está perdendo matrículas e como virar esse jogo.</p>
+  <dl class="summary" id="summary"></dl>
+  <div class="actions" id="send"></div>
+  <p class="small" id="sendmsg"></p>
+</div></section>
+<section class="step end" data-k="desqualificado"><div class="wrap">
+  <h1>Tudo bem, obrigado pela sinceridade!</h1>
+  <p>Este diagnóstico é para quem pode participar de uma sessão nas próximas 48 horas. Quando quiser colocar mais alunos pra dentro, é só voltar aqui.</p>
+  <div class="actions"><button class="btn ghost" data-go="restart">← Voltar ao início</button></div>
+</div></section>`);
+
+const steps = [...app.querySelectorAll(".step")];
+const order = ["welcome",...Q.map(q=>q.k),"fim"];
+let cur = "welcome", hist = [];
+const bar = document.getElementById("bar"), prev = document.getElementById("prev"), nextb = document.getElementById("nextb");
+
+function show(k){
+  cur = k;
+  steps.forEach(s=>s.classList.toggle("on", s.dataset.k===k));
+  const i = order.indexOf(k);
+  bar.style.width = (k==="desqualificado"||k==="fim" ? 100 : Math.max(0,i)/(order.length-1)*100) + "%";
+  prev.disabled = !hist.length || k==="fim";
+  nextb.disabled = k==="fim" || k==="desqualificado";
+  const s = steps.find(s=>s.dataset.k===k);
+  const inp = s.querySelector("input"); const sel = s.querySelector(".opt.sel")||s.querySelector(".opt");
+  setTimeout(()=>{(inp||sel||s.querySelector(".btn"))?.focus({preventScroll:true})}, 60);
+  if(k==="fim") finish();
+  window.scrollTo(0,0);
+}
+function go(k){ hist.push(cur); show(k); }
+function back(){ if(hist.length) show(hist.pop()); }
+
+function maskTel(v){
+  const d = v.replace(/\D/g,"").slice(0,11);
+  if(d.length<=2) return d.length?`(${d}`:"";
+  if(d.length<=6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if(d.length<=10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+}
+function validate(q, v){
+  if(q.t==="radio") return v ? "" : "Escolha uma opção para continuar.";
+  v = v.trim();
+  if(!v) return "Por favor, preencha este campo.";
+  if(q.t==="name" && v.split(/\s+/).length<2) return "Informe nome e sobrenome.";
+  if(q.t==="tel"){const d=v.replace(/\D/g,""); if(d.length<10) return "Informe o número com DDD, ex: (11) 99999-9999.";}
+  if(q.t==="email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "Esse e-mail não parece válido.";
+  if(q.t==="text" && v.replace("@","").length<2) return "Informe o @ do Instagram.";
+  return "";
+}
+function submitStep(){
+  if(cur==="welcome") return go(order[1]);
+  const q = Q.find(q=>q.k===cur); if(!q) return;
+  const s = steps.find(s=>s.dataset.k===cur);
+  let v = q.t==="radio" ? ans[q.k] : s.querySelector("input").value;
+  if(q.t==="text" && v && !v.trim().startsWith("@")) { v = "@"+v.trim(); s.querySelector("input").value = v; }
+  const e = validate(q, v||"");
+  s.querySelector(".err").textContent = e;
+  if(e) return;
+  ans[q.k] = v.trim ? v.trim() : v;
+  if(q.jump && q.jump[ans[q.k]]) return go(q.jump[ans[q.k]]);
+  go(order[order.indexOf(cur)+1]);
+}
+function pick(btn){
+  const s = btn.closest(".step"), k = s.dataset.k;
+  s.querySelectorAll(".opt").forEach(b=>{b.classList.toggle("sel", b===btn); b.setAttribute("aria-checked", b===btn)});
+  ans[k] = btn.dataset.v;
+  s.querySelector(".err").textContent = "";
+  setTimeout(submitStep, 280);
+}
+function finish(){
+  const keys = Q.map(q=>q.k).filter(k=>ans[k]);
+  document.getElementById("summary").innerHTML = keys.map(k=>`<div><dt>${esc(LABEL[k])}</dt><dd>${esc(ans[k])}</dd></div>`).join("");
+  const texto = "Novo diagnóstico – Mais Alunos\n" + keys.map(k=>`${LABEL[k]}: ${ans[k]}`).join("\n");
+  const send = document.getElementById("send"), msg = document.getElementById("sendmsg");
+  if(WHATSAPP_DESTINO){
+    const url = `https://wa.me/${WHATSAPP_DESTINO}?text=${encodeURIComponent(texto)}`;
+    send.innerHTML = `<a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Enviar no WhatsApp →</a>`;
+    msg.textContent = "Toque no botão para confirmar o envio das suas respostas pelo WhatsApp.";
+  } else { send.innerHTML = ""; msg.textContent = ""; }
+  if(!sent){
+    sent = true;
+    const body = new URLSearchParams({"form-name":"diagnostico"});
+    keys.forEach(k=>body.append(k, ans[k]));
+    fetch("/", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:body.toString()}).catch(()=>{});
+  }
+}
+let sent = false;
+
+app.addEventListener("click", e=>{
+  const o = e.target.closest(".opt"); if(o) return pick(o);
+  const b = e.target.closest("[data-go]"); if(!b) return;
+  if(b.dataset.go==="restart"){ hist=[]; sent=false; Object.keys(ans).forEach(k=>delete ans[k]); steps.forEach(s=>{s.querySelectorAll(".opt").forEach(x=>{x.classList.remove("sel");x.setAttribute("aria-checked","false")});s.querySelectorAll("input").forEach(i=>i.value="")}); return show("welcome"); }
+  submitStep();
+});
+app.addEventListener("input", e=>{
+  if(e.target.type==="tel") e.target.value = maskTel(e.target.value);
+  const err = e.target.closest(".step")?.querySelector(".err"); if(err) err.textContent = "";
+});
+document.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !e.target.closest("a")){ if(e.target.closest(".opt")) return; e.preventDefault(); submitStep(); return; }
+  const q = Q.find(q=>q.k===cur);
+  if(q && q.t==="radio" && !e.ctrlKey && !e.metaKey && e.key.length===1){
+    const j = L.indexOf(e.key.toUpperCase());
+    const btns = steps.find(s=>s.dataset.k===cur).querySelectorAll(".opt");
+    if(j>-1 && btns[j]) pick(btns[j]);
+  }
+});
+prev.onclick = back;
+nextb.onclick = submitStep;
+show("welcome");
+}
+</script>
+</body>
+</html>
