@@ -105,7 +105,7 @@ input:focus{border-bottom-color:var(--acc);outline:none}
 
 <!-- Formulário oculto: o Netlify lê isto na publicação e passa a guardar os envios em Forms -->
 <form name="diagnostico" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="bot-field"><input name="compromisso"><input name="nome"><input name="whatsapp"><input name="email"><input name="instagram"><input name="segmento"><input name="alunos"><input name="meta"><input name="faturamento">
+  <input name="bot-field"><input name="compromisso"><input name="nome"><input name="whatsapp"><input name="email"><input name="instagram"><input name="segmento"><input name="alunos"><input name="faturamento">
 </form>
 
 <div class="nav"><button id="prev" aria-label="Pergunta anterior">↑</button><button id="nextb" aria-label="Próxima pergunta">↓</button></div>
@@ -126,12 +126,10 @@ const Q = [
    o:["Academia","Studio","Box","Pilates","Lutas","Assessoria Esportiva","Escola de Dança","Escola de Natação","Club Wellness","Outro"]},
   {k:"alunos",t:"radio",cols:1,q:"Quantos alunos ativos você tem hoje?",
    o:["Menos de 100","100 a 199","200 a 399","400 a 699","700 a 999","1.000 ou mais"]},
-  {k:"meta",t:"radio",q:"Quantos novos alunos você quer matricular por mês?",
-   o:["Até 20","De 20 a 50","De 50 a 100","Mais de 100"]},
   {k:"faturamento",t:"radio",cols:1,q:"Qual é o seu faturamento mensal atual?",
    o:["Menos de 15 mil","15 mil até 29 mil","30 mil até 49 mil","50 mil até 79 mil","80 mil até 99 mil","100 mil até 149 mil","150 mil até 249 mil","250 mil até 500 mil","Mais de 500 mil"]}
 ];
-const LABEL = {compromisso:"Compromisso",nome:"Nome",whatsapp:"WhatsApp",email:"E-mail",instagram:"Instagram",segmento:"Segmento",alunos:"Alunos ativos",meta:"Meta de novos alunos/mês",faturamento:"Faturamento mensal"};
+const LABEL = {compromisso:"Compromisso",nome:"Nome",whatsapp:"WhatsApp",email:"E-mail",instagram:"Instagram",segmento:"Segmento",alunos:"Alunos ativos",faturamento:"Faturamento mensal"};
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const L = "ABCDEFGHIJ";
 const app = document.getElementById("app");
