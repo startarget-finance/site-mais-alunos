@@ -5,6 +5,7 @@
 //   OUTREE_CHAVE        obrigatória  chave da API (otr_...), escopos crm:read e crm:write
 //   OUTREE_ESTAGIO_ID   opcional     estágio onde o lead entra (define o pipeline)
 //   OUTREE_PIPELINE_ID  opcional     pipeline (entra no 1º estágio) se não houver estágio
+//   Sem IDs, procura pelo nome: OUTREE_PIPELINE_NOME (padrão "SDR - MAIS ALUNOS") e OUTREE_ESTAGIO_NOME (padrão "Entrada")
 
 const API = "https://api.outree.tech/v1";
 
@@ -44,6 +45,25 @@ async function outree(path, chave, body, idem) {
   return json;
 }
 
+const norm = (s = "") => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+
+// Acha pipeline e estágio pelo nome (padrão: "SDR - MAIS ALUNOS" → "Entrada").
+async function acharDestino(chave) {
+  const pipeNome = norm(process.env.OUTREE_PIPELINE_NOME || "SDR - MAIS ALUNOS");
+  const estNome = norm(process.env.OUTREE_ESTAGIO_NOME || "Entrada");
+  const res = await fetch(API + "/pipelines?limite=200", { headers: { Authorization: `Bearer ${chave}` } });
+  if (!res.ok) throw new Error(`OuTree /pipelines respondeu ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const json = await res.json();
+  const lista = Array.isArray(json) ? json : json.dados || json.pipelines || [];
+  const pipe = lista.find((p) => norm(p.nome) === pipeNome);
+  if (!pipe) {
+    console.error("Pipeline não encontrado:", pipeNome, "| existentes:", lista.map((p) => p.nome).join(", "));
+    return {};
+  }
+  const est = (pipe.estagios || []).find((e) => norm(e.nome) === estNome);
+  return est ? { estagio_id: est.id } : { pipeline_id: pipe.id };
+}
+
 export const handler = async (event) => {
   const chave = process.env.OUTREE_CHAVE;
   if (!chave) {
@@ -72,10 +92,11 @@ export const handler = async (event) => {
       origem_url: "https://maisalunos.netlify.app",
     },
   };
-  if (process.env.OUTREE_ESTAGIO_ID) negociacao.estagio_id = process.env.OUTREE_ESTAGIO_ID;
-  else if (process.env.OUTREE_PIPELINE_ID) negociacao.pipeline_id = process.env.OUTREE_PIPELINE_ID;
-
   try {
+    if (process.env.OUTREE_ESTAGIO_ID) negociacao.estagio_id = process.env.OUTREE_ESTAGIO_ID;
+    else if (process.env.OUTREE_PIPELINE_ID) negociacao.pipeline_id = process.env.OUTREE_PIPELINE_ID;
+    else Object.assign(negociacao, await acharDestino(chave));
+
     const criada = await outree("/negociacoes", chave, negociacao, `form-${payload.id}`);
     const id = criada?.negociacao?.id;
     if (id) {
