@@ -69,6 +69,18 @@ input:focus{border-bottom-color:var(--acc);outline:none}
 @media(max-width:760px){.welcome .wrap{grid-template-columns:1fr}.art{max-width:260px;order:-1;justify-self:start}}
 @media(max-width:600px){.opts.cols{grid-template-columns:1fr}.hint{display:none}.summary div{grid-template-columns:1fr;gap:2px}}
 </style>
+<!-- Meta Pixel -->
+<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('init','1327588159566669');
+fbq('track','PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1327588159566669&ev=PageView&noscript=1"/></noscript>
+<!-- End Meta Pixel -->
 </head>
 <body>
 <div class="bar"><i id="bar"></i></div>
@@ -130,6 +142,7 @@ const Q = [
    o:["Menos de 15 mil","15 mil até 29 mil","30 mil até 49 mil","50 mil até 79 mil","80 mil até 99 mil","100 mil até 149 mil","150 mil até 249 mil","250 mil até 500 mil","Mais de 500 mil"]}
 ];
 const LABEL = {compromisso:"Compromisso",nome:"Nome",whatsapp:"WhatsApp",email:"E-mail",instagram:"Instagram",segmento:"Segmento",alunos:"Alunos ativos",faturamento:"Faturamento mensal"};
+const px = (...a) => { try { window.fbq && window.fbq(...a); } catch(e){} };
 const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const L = "ABCDEFGHIJ";
 const app = document.getElementById("app");
@@ -178,6 +191,8 @@ function show(k){
   const inp = s.querySelector("input"); const sel = s.querySelector(".opt.sel")||s.querySelector(".opt");
   setTimeout(()=>{(inp||sel||s.querySelector(".btn"))?.focus({preventScroll:true})}, 60);
   if(k==="fim") finish();
+  if(k==="desqualificado") px("trackCustom","Desqualificado");
+  if(k===order[1] && !started){ started = true; px("trackCustom","InicioFormulario"); }
   window.scrollTo(0,0);
 }
 function go(k){ hist.push(cur); show(k); }
@@ -232,12 +247,13 @@ function finish(){
   } else { send.innerHTML = ""; msg.textContent = ""; }
   if(!sent){
     sent = true;
+    px("track","Lead",{content_name:"Diagnóstico Mais Alunos",content_category:ans.segmento||"",segmento:ans.segmento||"",alunos:ans.alunos||"",faturamento:ans.faturamento||""},{eventID:"lead-"+Date.now()+"-"+Math.random().toString(36).slice(2,8)});
     const body = new URLSearchParams({"form-name":"diagnostico"});
     keys.forEach(k=>body.append(k, ans[k]));
     fetch("/", {method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"}, body:body.toString()}).catch(()=>{});
   }
 }
-let sent = false;
+let sent = false, started = false;
 
 app.addEventListener("click", e=>{
   const o = e.target.closest(".opt"); if(o) return pick(o);
