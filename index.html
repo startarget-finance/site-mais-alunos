@@ -49,6 +49,10 @@ p{margin:0 0 14px;max-width:62ch}
 input[type=text],input[type=email],input[type=tel]{width:100%;border:0;border-bottom:2px solid var(--line);background:transparent;color:var(--ink);font:500 clamp(20px,3vw,26px) Archivo,sans-serif;padding:10px 2px;border-radius:0}
 input::placeholder{color:var(--mute);opacity:.6}
 input:focus{border-bottom-color:var(--acc);outline:none}
+.tel-wrap{display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--line)}
+.tel-wrap:focus-within{border-bottom-color:var(--acc)}
+.tel-wrap input{border-bottom:0!important}
+.ddi{flex:none;font:600 clamp(20px,3vw,26px) Archivo,sans-serif;color:var(--mute);padding:10px 0 10px 2px;white-space:nowrap}
 .err{color:var(--err);font-size:15px;min-height:1.5em;margin-top:8px;font-weight:600}
 .opts{display:grid;gap:10px;margin-top:18px;max-width:520px}
 .opts.cols{grid-template-columns:repeat(2,minmax(0,1fr));max-width:620px}
@@ -131,7 +135,7 @@ const Q = [
   {k:"compromisso",t:"radio",q:"Você leu a página anterior e está pronto(a) para participar de uma sessão de diagnóstico com o nosso time nas próximas 48 horas?",
    o:["✅ Sim, quero mais alunos","❌ Agora não é pra mim"],jump:{"❌ Agora não é pra mim":"desqualificado"}},
   {k:"nome",t:"name",q:"Pra começar, qual é o seu nome completo?",ph:"Digite seu nome e sobrenome"},
-  {k:"whatsapp",t:"tel",q:"Qual o seu WhatsApp com DDD?",n:"Informe o seu número pessoal, não o da academia. Assim falamos direto com quem decide.",ph:"(11) 99999-9999"},
+  {k:"whatsapp",t:"tel",q:"Qual o seu WhatsApp com DDD?",n:"Digite só o DDD e o número, sem o 55. Use o seu número pessoal, não o da academia.",ph:"(11) 99999-9999"},
   {k:"email",t:"email",q:"Seu melhor e-mail:",ph:"nome@exemplo.com"},
   {k:"instagram",t:"text",q:"Qual o Instagram do seu negócio?",n:"É por ele que começamos a analisar como você atrai alunos hoje. Exemplo: @maisalunos",ph:"@suaacademia"},
   {k:"segmento",t:"radio",cols:1,q:"Em qual segmento do mercado fitness você atua?",
@@ -156,6 +160,7 @@ const qHtml = (q,i) => {
   const head = `<div class="num">${i+1} →</div><h2>${esc(q.q)}</h2>${q.n?`<p class="note">${esc(q.n)}</p>`:""}`;
   let body;
   if(q.t==="radio") body = `<div class="opts${q.cols?" cols":""}" role="radiogroup">${q.o.map((o,j)=>`<button type="button" class="opt" role="radio" aria-checked="false" data-v="${esc(o)}"><kbd>${L[j]}</kbd><span>${esc(o)}</span></button>`).join("")}</div>`;
+  else if(q.t==="tel") body = `<div class="tel-wrap"><span class="ddi" aria-hidden="true">🇧🇷 +55</span><input id="in-${q.k}" type="tel" inputmode="numeric" autocomplete="tel-national" aria-label="WhatsApp com DDD, sem o 55" placeholder="${esc(q.ph||"")}"></div>`;
   else body = `<input id="in-${q.k}" type="${q.t==="name"?"text":q.t}" ${q.t==="tel"?'inputmode="tel"':""} autocomplete="${({name:"name",tel:"tel",email:"email"})[q.t]||"off"}" placeholder="${esc(q.ph||"")}">`;
   return `<section class="step" data-k="${q.k}"><div class="wrap">${head}${body}<div class="err" aria-live="polite"></div>
   <div class="actions"><button class="btn" data-go="ok">OK ✓</button><span class="hint">pressione <b>Enter ↵</b></span></div></div></section>`;
@@ -198,8 +203,15 @@ function show(k){
 function go(k){ hist.push(cur); show(k); }
 function back(){ if(hist.length) show(hist.pop()); }
 
+function telDigits(v){
+  let d = String(v).replace(/\D/g,"");
+  if(d.startsWith("00")) d = d.slice(2);          // 0055...
+  if(d.length > 11 && d.startsWith("55")) d = d.slice(2); // tirou o +55 digitado
+  d = d.replace(/^0+/, "");                       // 011 → 11
+  return d.slice(0,11);
+}
 function maskTel(v){
-  const d = v.replace(/\D/g,"").slice(0,11);
+  const d = telDigits(v);
   if(d.length<=2) return d.length?`(${d}`:"";
   if(d.length<=6) return `(${d.slice(0,2)}) ${d.slice(2)}`;
   if(d.length<=10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
@@ -210,7 +222,10 @@ function validate(q, v){
   v = v.trim();
   if(!v) return "Por favor, preencha este campo.";
   if(q.t==="name" && v.split(/\s+/).length<2) return "Informe nome e sobrenome.";
-  if(q.t==="tel"){const d=v.replace(/\D/g,""); if(d.length<10) return "Informe o número com DDD, ex: (11) 99999-9999.";}
+  if(q.t==="tel"){const d=telDigits(v);
+    if(d.length<10) return "Informe o DDD e o número completo, ex: (11) 99999-9999.";
+    if(!/^[1-9][1-9]/.test(d)) return "Esse DDD não existe. Digite só o DDD e o número, sem o 55.";
+    if(d.length===11 && d[2]!=="9") return "Celular tem 9 dígitos começando com 9, ex: (11) 99999-9999.";}
   if(q.t==="email" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return "Esse e-mail não parece válido.";
   if(q.t==="text" && v.replace("@","").length<2) return "Informe o @ do Instagram.";
   return "";
